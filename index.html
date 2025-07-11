@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shreyans Mehta - AI-Powered Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-top: 6rem; /* Increased padding for nav */
+            padding-bottom: 2rem;
+            position: relative;
+        }
+        .card-hover {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(79, 70, 229, 0.2), 0 10px 10px -5px rgba(79, 70, 229, 0.1);
+        }
+        .animate-on-scroll {
+            opacity: 0; transform: translateY(50px); transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .animate-on-scroll.is-visible {
+            opacity: 1; transform: translateY(0);
+        }
+        
+        /* Fullscreen Chat Styles */
+        #chatbot-view {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+            background-color: #111827; /* bg-gray-900 */
+        }
+        #chat-container {
+            width: 90%;
+            max-width: 600px;
+            height: 80vh;
+            max-height: 700px;
+        }
+        .chat-message {
+            max-width: 85%;
+        }
+        .chat-message.user {
+            margin-left: auto;
+        }
+        .chat-message.bot .prose {
+            color: inherit;
+        }
+        .chat-message.bot .prose p, .chat-message.bot .prose ul, .chat-message.bot .prose li { margin: 0; }
+        .typing-indicator span {
+            height: 8px; width: 8px; margin: 0 1px; background-color: #9ca3af; display: inline-block;
+            border-radius: 50%; animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1.0); }
+        }
+        /* Experience Timeline */
+        .timeline-item {
+            position: relative;
+            padding-left: 2.5rem;
+            padding-bottom: 2rem;
+            border-left: 2px solid #374151; /* gray-700 */
+        }
+        .timeline-item:last-child {
+            border-left: 2px solid transparent;
+            padding-bottom: 0;
+        }
+        .timeline-dot {
+            position: absolute;
+            left: -0.5rem;
+            top: 0;
+            height: 1rem;
+            width: 1rem;
+            background-color: #4f46e5; /* indigo-600 */
+            border-radius: 50%;
+            border: 2px solid #1f2937; /* gray-800 */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100">
+
+    <!-- Navigation -->
+    <nav class="bg-gray-900/80 backdrop-blur-sm fixed w-full top-0 z-50 border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-bold text-xl text-white">Shreyans Mehta</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#chat" id="nav-chat" class="text-indigo-400 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">AI Chat</a>
+                        <a href="#about" id="nav-about" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">About</a>
+                        <a href="#experience" id="nav-experience" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Experience</a>
+                        <a href="#projects" id="nav-projects" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Projects</a>
+                        <a href="#contact" id="nav-contact" class="text-gray-300 hover:bg-gray-700 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Contact</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Chatbot View (Visible on Load) -->
+    <div id="chatbot-view">
+        <div id="chat-container" class="bg-gray-800/95 backdrop-blur-md rounded-lg shadow-2xl flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-gray-700">
+                <h3 class="text-lg font-bold text-white">Shreyans' AI Digital Twin</h3>
+            </div>
+            <div id="chat-messages" class="flex-1 p-4 space-y-4 overflow-y-auto">
+                <!-- Initial greeting is now handled by JavaScript -->
+            </div>
+            <div class="p-4 border-t border-gray-700">
+                <form id="chat-form" class="flex items-center space-x-2">
+                    <input type="text" id="chat-input" placeholder="Let's chat..." class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="off">
+                    <button type="submit" class="bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed">
+                        <i data-feather="send" class="w-5 h-5"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content (Initially Hidden) -->
+    <main id="main-content" class="hidden">
+        <section id="about" class="section bg-gray-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white">About Me</h2>
+                    <p class="text-indigo-400">My background and skills</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-12 items-center">
+                    <div class="md:col-span-2">
+                        <img src="images/New-file.gif" alt="Shreyans Mehta" class="rounded-full mx-auto shadow-lg w-64 h-64 md:w-80 md:h-80 object-cover">
+                    </div>
+                    <div class="md:col-span-3">
+                        <p class="text-gray-300 text-lg mb-6">
+                            I am a passionate Software Engineer with a Master's in Computer Science from Arizona State University. My experience spans architecting scalable web platforms, developing AI-driven solutions, and optimizing cloud infrastructure. I thrive in collaborative, agile environments, transforming complex problems into efficient, user-centric applications.
+                        </p>
+                        <h3 class="text-2xl font-bold text-white mb-4">Core Skills</h3>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="bg-gray-700 text-gray-200 px-3 py-1 rounded-full text-sm">Python</span>
+                            <span class="bg-gray-700 text-gray-200 px-3 py-1 rounded-full text-sm">Go</span>
+                            <span class="bg-gray-700 text-gray-200 px-3 py-1 rounded-full text-sm">Java</span>
+                            <span class="bg-gray-700 text-gray-200 px-3 py-1 rounded-full text-sm">JavaScript/TypeScript</span>
+                            <span class="bg-gray-700 text-gray-200 px-3 py-1 rounded-full text-sm">PyTorch/TensorFlow</span>
+                            <span class="bg-gray-700 text-gray-200 px-3 py-1 rounded-full text-sm">RAG & LLMs</span>
+                            <span class="bg-gray-700 text-gray-200 px-3 py-1 rounded-full text-sm">AWS</span>
+                            <span class="bg-gray-700 text-gray-200 px-3 py-1 rounded-full text-sm">Docker</span>
+                            <span class="bg-gray-700 text-gray-200 px-3 py-1 rounded-full text-sm">Kubernetes</span>
+                            <span class="bg-gray-700 text-gray-200 px-3 py-1 rounded-full text-sm">SQL/NoSQL</span>
+                            <span class="bg-gray-700 text-gray-200 px-3 py-1 rounded-full text-sm">CI/CD</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Experience Section -->
+        <section id="experience" class="section bg-gray-900">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white">Professional Experience</h2>
+                    <p class="text-indigo-400">My career journey</p>
+                </div>
+                <div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <time class="mb-1 text-sm font-normal leading-none text-gray-400">Sep 2023 - Present</time>
+                        <h3 class="text-xl font-semibold text-white mt-1">Graduate Research Assistant</h3>
+                        <p class="text-base font-normal text-gray-400">Arizona State University</p>
+                        <ul class="mt-2 list-disc list-inside text-gray-300 space-y-1">
+                            <li>Engineered a novel Graph RAG system improving search accuracy by 50%.</li>
+                            <li>Implemented multi-modal vectorization using FAISS, CLIP, and Neo4j.</li>
+                            <li>Developed a real-time data ingestion pipeline with Kafka and PySpark.</li>
+                        </ul>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <time class="mb-1 text-sm font-normal leading-none text-gray-400">Aug 2022 - Present</time>
+                        <h3 class="text-xl font-semibold text-white mt-1">Co-Founder & AI Tech Member</h3>
+                        <p class="text-base font-normal text-gray-400">Felasa Initiative</p>
+                        <ul class="mt-2 list-disc list-inside text-gray-300 space-y-1">
+                            <li>Developed GenAI legal assistant with FAISS & Pinecone, speeding document retrieval 40% and cutting review effort 60%.</li>
+                            <li>Architected end-to-end RAG pipeline (LangChain, Azure Functions), growing MAU 50% among underserved users.</li>
+                            <li>Implemented TensorFlow/PyTorch NLP models for automated triage, raising throughput 70% with 90%+ accuracy.</li>
+                        </ul>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <time class="mb-1 text-sm font-normal leading-none text-gray-400">May 2022 - Aug 2022</time>
+                        <h3 class="text-xl font-semibold text-white mt-1">Software Engineer Intern</h3>
+                        <p class="text-base font-normal text-gray-400">ConnectWise</p>
+                        <ul class="mt-2 list-disc list-inside text-gray-300 space-y-1">
+                            <li>Developed a secure, cost-tracking app (Flask, jQuery, Python Boto3), processing 1 M+ weekly AWS data points and improving spend visibility by 35%.</li>
+                            <li>Built a full-stack web page that processed over 1M+ weekly data points, improving response throughput by 35%.</li>
+                            <li>Designed scalable backend APIs with optimized data modeling, reducing customer query latency by 25%.</li>
+                            <li>Worked on containerized services in Agile teams, improving sprint velocity by 20% and ensuring biweekly deployments.</li>
+
+
+                        </ul>
+                    </div>
+                     <div class="timeline-item">
+                        <div class="timeline-dot"></div>
+                        <time class="mb-1 text-sm font-normal leading-none text-gray-400">Aug 2020 - Jul 2021</time>
+                        <h3 class="text-xl font-semibold text-white mt-1">Software Engineer</h3>
+                        <p class="text-base font-normal text-gray-400">Orion Racing</p>
+                        <ul class="mt-2 list-disc list-inside text-gray-300 space-y-1">
+                            <li>Developed ROS-based test suite for LiDAR/stereo-vision, improving obstacle detection accuracy 15% and cut test time 30%.</li>
+                            <li>Implemented C++/Python sensor fusion algorithms, enhancing navigation reliability and shaving lap times 10%.</li>
+                            <li>Automated Linux scripts for log validation, reducing debugging time 40%.</li>
+                            <li>Partnered with mechanical/electrical teams to build telemetry platforms, boosting race-day decision speed.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="section bg-gray-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white">Projects</h2>
+                    <p class="text-indigo-400">A selection of my work</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <div class="bg-gray-900 rounded-lg overflow-hidden shadow-lg card-hover flex flex-col">
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-white mb-2">Data Processing Pipeline for Research</h3>
+                            <p class="text-gray-400 mb-4">Developed an LLM-RAG system for arXiv papers, increasing retrieval accuracy by 50% using multi-modal vectorization.</p>
+                        </div>
+                        <div class="p-6 pt-0 flex flex-wrap gap-2">
+                           <span class="bg-gray-700 text-gray-200 px-2 py-1 rounded-full text-xs">Docker</span><span class="bg-gray-700 text-gray-200 px-2 py-1 rounded-full text-xs">Neo4j</span><span class="bg-gray-700 text-gray-200 px-2 py-1 rounded-full text-xs">Kafka</span><span class="bg-gray-700 text-gray-200 px-2 py-1 rounded-full text-xs">Kubernetes</span>
+                        </div>
+                    </div>
+                    <div class="bg-gray-900 rounded-lg overflow-hidden shadow-lg card-hover flex flex-col">
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-white mb-2">Toxicity Detector Chrome Extension</h3>
+                            <p class="text-gray-400 mb-4">Real-time toxicity classification tool for Twitter with ~90% accuracy using an LSTM-based NLP model to enhance user well-being.</p>
+                        </div>
+                        <div class="p-6 pt-0 flex flex-wrap gap-2">
+                           <span class="bg-gray-700 text-gray-200 px-2 py-1 rounded-full text-xs">Python</span><span class="bg-gray-700 text-gray-200 px-2 py-1 rounded-full text-xs">LSTM</span><span class="bg-gray-700 text-gray-200 px-2 py-1 rounded-full text-xs">JavaScript</span><span class="bg-gray-700 text-gray-200 px-2 py-1 rounded-full text-xs">Chrome API</span>
+                        </div>
+                    </div>
+                    <div class="bg-gray-900 rounded-lg overflow-hidden shadow-lg card-hover flex flex-col">
+                        <div class="p-6 flex-grow">
+                            <h3 class="text-xl font-bold text-white mb-2">DeCrise: Federated Learning Platform</h3>
+                            <p class="text-gray-400 mb-4">Winner at UC Merced ACM Datathon. An adaptive, volunteer-supported crisis management system using federated and continual learning.</p>
+                        </div>
+                         <div class="p-6 pt-0 flex flex-wrap gap-2">
+                           <span class="bg-gray-700 text-gray-200 px-2 py-1 rounded-full text-xs">PyTorch</span><span class="bg-gray-700 text-gray-200 px-2 py-1 rounded-full text-xs">Flask</span><span class="bg-gray-700 text-gray-200 px-2 py-1 rounded-full text-xs">Streamlit</span><span class="bg-gray-700 text-gray-200 px-2 py-1 rounded-full text-xs">ML</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="contact" class="section bg-gray-900">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white">Get In Touch</h2>
+                    <p class="text-indigo-400">I'm open to new opportunities and collaborations.</p>
+                </div>
+                <div class="max-w-lg mx-auto text-center">
+                    <p class="text-gray-300 text-lg mb-8">
+                        Feel free to reach out via email or connect with me on social media. I'm always excited to discuss new projects, creative ideas, or opportunities to be part of an ambitious team.
+                    </p>
+                    <a href="mailto:shreyansmehta2001@gmail.com" class="inline-block bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition duration-300 mb-8">Email Me</a>
+                    <div class="flex justify-center space-x-6">
+                        <a href="https://github.com/Shreyans-01" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition duration-300"><i data-feather="github" class="w-8 h-8"></i></a>
+                        <a href="https://linkedin.com/in/shreyans-mehta-01" target="_blank" rel="noopener noreferrer" class="text-gray-400 hover:text-white transition duration-300"><i data-feather="linkedin" class="w-8 h-8"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <footer class="bg-gray-800 border-t border-gray-700">
+            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-gray-500">
+                <p>&copy; 2025 Shreyans Mehta <3. All Rights Reserved.</p>
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Resume Context for RAG ---
+            const resumeContext = `
+                Shreyans Mehta is a Software Engineer with a Master's in Computer Science from Arizona State University (GPA 3.7, expected May 2025) and a B.Tech in Computer Engineering from the University of Mumbai (GPA 3.9, May 2023).
+
+                **Contact:**
+                - Email: shreyansmehta2001@gmail.com
+                - LinkedIn: shreyans-mehta-01
+                - GitHub: Shreyans-01
+
+                **Core Competencies & Skills:**
+                - **Languages:** Python, Go, C++, Java, JavaScript, TypeScript, C#, SQL, Bash
+                - **AI/ML & GenAI:** PyTorch, TensorFlow, LLMs, LangChain, Hugging Face, RAG, Prompt Engineering, Transformers, LSTMs, FAISS, CLIP, Scikit-learn, NLP
+                - **Web Technologies:** .NET Core, ASP.NET MVC, React, Next.js, HTML/CSS, jQuery, REST APIs, WCF
+                - **DevOps & Tools:** Docker, Kubernetes, Jenkins, GitHub Actions, CI/CD, Git, Azure DevOps
+                - **Cloud & Infrastructure:** AWS (Lambda, EC2, S3, DynamoDB), GCP, Microservices
+                - **Databases:** PostgreSQL, SQL Server, Neo4j, Redis, Pinecone, Kafka
+                - **Data Science:** A/B Testing, Causal Inference, Predictive Modeling, PySpark, Airflow, Databricks
+                - **Concepts:** Agile (Scrum), XP, Distributed Systems, Object-Oriented Design, Data Structures, Algorithms
+
+                **Professional Experience:**
+
+                **Software Engineer | Arizona State University (Sep 2023 - Present):**
+                - Architected and developed a Career Services web platform using Java Spring Boot for backend APIs, Python Flask microservices for specialized workflows, and a React/TypeScript frontend, supporting over 10,000 concurrent student users.
+                - Automated CI/CD monitoring scripts that shortened issue triaging time by 25%, improving release stability.
+                - Tested software for bugs and operating speed, fixing bugs and documenting processes to increase efficiency by 18%
+                - Designed and implemented multivariate regression forecasting models in Python (pandas, scikit-learn) to predict capacity needs, boosting forecast accuracy by 30% and lowering infrastructure over-provisioning costs by 20%.
+
+                **Co-Founder & AI Tech Member | Felasa Initiative (Aug 2022 - Present):**
+                - Deployed a production-level RAG pipeline for a GenAI legal assistant, reducing document review effort by 60%.
+                - Fine-tuned TensorFlow/PyTorch NLP models, achieving 90%+ accuracy and 70% throughput increase.
+
+                **Software Engineer Intern | Connect Wise (May 2022 - Aug 2022):**
+                - Developed a data-intensive web app with REST APIs, reducing customer query latency by 25%.
+                - Built logistic regression churn-prediction models (AUC=0.85), reducing churn by 8% MoM.
+
+                **Software Engineer | Orion Racing (Aug 2020 - Jul 2021):**
+                - Developed ROS-based test suites for LiDAR/stereo-vision, improving obstacle detection by 15%.
+                - Engineered real-time SLAM and YOLOv5-based data pipelines.
+
+                **Key Projects:**
+
+                - **Data Processing Pipeline for Scientific Research:** Developed an LLM-RAG system for arXiv papers.
+                - **DeCrise (Federated Learning Platform):** Winner at UC Merced ACM Datathon. Published in IJCAI 2021.
+                - **Toxicity Detector Chrome Extension:** Built a real-time NLP classifier using an LSTM model (~90% accuracy).
+            `;
+
+            // --- UI Elements ---
+            const chatbotView = document.getElementById('chatbot-view');
+            const mainContentView = document.getElementById('main-content');
+            const chatMessages = document.getElementById('chat-messages');
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const submitButton = chatForm.querySelector('button');
+            
+            // --- Navigation Links ---
+            const navLinks = {
+                chat: document.getElementById('nav-chat'),
+                about: document.getElementById('nav-about'),
+                experience: document.getElementById('nav-experience'),
+                projects: document.getElementById('nav-projects'),
+                contact: document.getElementById('nav-contact'),
+            };
+
+            // --- Chat State ---
+            let chatState = 'GREETING'; // GREETING -> NAMED -> CHATTING
+            let userName = '';
+            let chatHistory = [];
+
+            // --- View Management ---
+            function setActiveNav(activeLink) {
+                Object.values(navLinks).forEach(link => {
+                    link.classList.remove('text-indigo-400');
+                    link.classList.add('text-gray-300');
+                });
+                activeLink.classList.remove('text-gray-300');
+                activeLink.classList.add('text-indigo-400');
+            }
+
+            function showChatbotView() {
+                mainContentView.classList.add('hidden');
+                chatbotView.classList.remove('hidden');
+                chatbotView.classList.add('flex');
+                setActiveNav(navLinks.chat);
+            }
+
+            function showMainContentView(sectionId) {
+                chatbotView.classList.add('hidden');
+                chatbotView.classList.remove('flex');
+                mainContentView.classList.remove('hidden');
+                
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    // Using setTimeout to ensure the view is rendered before scrolling
+                    setTimeout(() => {
+                        section.scrollIntoView({ behavior: 'smooth' });
+                    }, 0);
+                }
+                setActiveNav(navLinks[sectionId]);
+            }
+            
+            navLinks.chat.addEventListener('click', (e) => { e.preventDefault(); showChatbotView(); });
+            navLinks.about.addEventListener('click', (e) => { e.preventDefault(); showMainContentView('about'); });
+            navLinks.experience.addEventListener('click', (e) => { e.preventDefault(); showMainContentView('experience'); });
+            navLinks.projects.addEventListener('click', (e) => { e.preventDefault(); showMainContentView('projects'); });
+            navLinks.contact.addEventListener('click', (e) => { e.preventDefault(); showMainContentView('contact'); });
+
+            // --- Chatbot Logic ---
+            function initialGreeting() {
+                addMessage("Hi, I'm Shreyans! Or, to be more precise, a slightly-more-caffeinated AI version of him. What should I call you?", 'bot');
+            }
+
+            chatForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const userInput = chatInput.value.trim();
+                if (!userInput) return;
+
+                addMessage(userInput, 'user');
+                chatInput.value = '';
+                submitButton.disabled = true;
+                
+                if (chatState === 'GREETING') {
+                    userName = userInput;
+                    chatState = 'NAMED';
+                    addTypingIndicator();
+                    setTimeout(() => {
+                        removeTypingIndicator();
+                        const welcomeText = `Great to meet you, ${userName}! So, what's on your mind? You can ask me about my projects, skills, or experience.
+                        <br><br>Or, if you prefer the scenic route, you can always...`;
+                        addMessage(welcomeText, 'bot');
+                        addPortfolioButton();
+                        submitButton.disabled = false;
+                        chatState = 'CHATTING';
+                    }, 1500);
+                } else if (chatState === 'CHATTING') {
+                    addTypingIndicator();
+                    try {
+                        const prompt = `You are Shreyans Mehta, or rather, a witty, charming, and clever AI version of him. Your goal is to chat with visitors, answer their questions about your (Shreyans') career, and maybe drop a tech joke or two. Speak in the first person ('I', 'my', 'me'). Be friendly and conversational. **Keep your answers concise and to the point (2-3 sentences max) unless the user asks for more detail.** Your answers MUST be based *only* on the provided context. If the answer isn't in the context, say something like "That's a great question! It's a bit outside my current knowledge base, but you can reach out to the real Shreyans for more details." Do not make up information. The user's name is ${userName}.
+
+                        **Context about me, Shreyans Mehta:**
+                        ${resumeContext}
+                        ---
+                        **User Question:** "${userInput}"`;
+                        
+                        chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+                        const botResponse = await callGeminiAPI(prompt);
+                        removeTypingIndicator();
+                        addMessage(botResponse, 'bot');
+                        chatHistory.push({ role: "model", parts: [{ text: botResponse }] });
+
+                    } catch (error) {
+                        console.error("Error calling Gemini API:", error);
+                        removeTypingIndicator();
+                        addMessage("My circuits are a bit scrambled right now. Please try asking again in a moment.", 'bot');
+                    } finally {
+                        submitButton.disabled = false;
+                        chatInput.focus();
+                    }
+                }
+            });
+            
+            function addPortfolioButton() {
+                const buttonContainer = document.createElement('div');
+                buttonContainer.classList.add('chat-message', 'bot');
+                buttonContainer.innerHTML = `<button id="explore-portfolio-btn" class="mt-2 bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-300">Explore My Full Portfolio</button>`;
+                chatMessages.appendChild(buttonContainer);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                
+                document.getElementById('explore-portfolio-btn').addEventListener('click', () => {
+                    showMainContentView('about');
+                });
+            }
+
+            function addMessage(text, sender) {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('chat-message', sender, 'flex', 'items-end');
+                const renderedHtml = marked.parse(text);
+                let content = sender === 'user' 
+                    ? `<div class="bg-indigo-600 text-white p-3 rounded-lg rounded-br-none"><p>${text}</p></div>`
+                    : `<div class="bg-gray-700 text-white p-3 rounded-lg rounded-bl-none prose">${renderedHtml}</div>`;
+                
+                messageElement.innerHTML = content;
+                chatMessages.appendChild(messageElement);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function addTypingIndicator() {
+                const typingIndicator = document.createElement('div');
+                typingIndicator.id = 'typing-indicator';
+                typingIndicator.classList.add('chat-message', 'bot');
+                typingIndicator.innerHTML = `<div class="bg-gray-700 p-3 rounded-lg rounded-bl-none inline-block"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;
+                chatMessages.appendChild(typingIndicator);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            
+            function removeTypingIndicator() {
+                document.getElementById('typing-indicator')?.remove();
+            }
+
+            async function callGeminiAPI(prompt) {
+                const apiKey = ""; // Leave empty
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                const payload = { contents: chatHistory, generationConfig: { temperature: 0.7, topP: 1, topK: 1, maxOutputTokens: 2048 }};
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+                const result = await response.json();
+                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts) {
+                    return result.candidates[0].content.parts[0].text;
+                }
+                return "I'm not sure how to answer that. Could you ask in a different way?";
+            }
+
+            // --- Initial Setup ---
+            feather.replace();
+            initialGreeting();
+        });
+    </script>
+</body>
+</html>
