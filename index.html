@@ -39,20 +39,13 @@
             opacity: 1; transform: translateY(0);
         }
         
-        /* Fullscreen Chat Styles */
-        #chatbot-view {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            width: 100vw;
-            background-color: #111827; /* bg-gray-900 */
-        }
+        /* Adjusted Chat Container Styles */
         #chat-container {
             width: 90%;
             max-width: 600px;
-            height: 80vh;
+            height: 80vh; /* Maintain a good height for chat */
             max-height: 700px;
+            margin: auto; /* Center the container within the section */
         }
         .chat-message {
             max-width: 85%;
@@ -99,7 +92,6 @@
 </head>
 <body class="bg-gray-900 text-gray-100">
 
-    <!-- Navigation -->
     <nav class="bg-gray-900/80 backdrop-blur-sm fixed w-full top-0 z-50 border-b border-gray-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between h-16">
@@ -119,28 +111,25 @@
         </div>
     </nav>
     
-    <!-- Chatbot View (Visible on Load) -->
-    <div id="chatbot-view">
-        <div id="chat-container" class="bg-gray-800/95 backdrop-blur-md rounded-lg shadow-2xl flex flex-col">
-            <div class="flex items-center justify-between p-4 border-b border-gray-700">
-                <h3 class="text-lg font-bold text-white">Shreyans' AI Digital Twin</h3>
+    <main id="main-content">
+        <section id="chat" class="section bg-gray-900">
+            <div id="chat-container" class="bg-gray-800/95 backdrop-blur-md rounded-lg shadow-2xl flex flex-col">
+                <div class="flex items-center justify-between p-4 border-b border-gray-700">
+                    <h3 class="text-lg font-bold text-white">Shreyans' AI Digital Twin</h3>
+                </div>
+                <div id="chat-messages" class="flex-1 p-4 space-y-4 overflow-y-auto">
+                    </div>
+                <div class="p-4 border-t border-gray-700">
+                    <form id="chat-form" class="flex items-center space-x-2">
+                        <input type="text" id="chat-input" placeholder="Let's chat..." class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="off">
+                        <button type="submit" class="bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed">
+                            <i data-feather="send" class="w-5 h-5"></i>
+                        </button>
+                    </form>
+                </div>
             </div>
-            <div id="chat-messages" class="flex-1 p-4 space-y-4 overflow-y-auto">
-                <!-- Initial greeting is now handled by JavaScript -->
-            </div>
-            <div class="p-4 border-t border-gray-700">
-                <form id="chat-form" class="flex items-center space-x-2">
-                    <input type="text" id="chat-input" placeholder="Let's chat..." class="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-indigo-500" autocomplete="off">
-                    <button type="submit" class="bg-indigo-600 text-white p-3 rounded-lg hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed">
-                        <i data-feather="send" class="w-5 h-5"></i>
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
+        </section>
 
-    <!-- Main Content (Initially Hidden) -->
-    <main id="main-content" class="hidden">
         <section id="about" class="section bg-gray-800">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="text-center mb-12">
@@ -174,7 +163,6 @@
             </div>
         </section>
         
-        <!-- Experience Section -->
         <section id="experience" class="section bg-gray-900">
             <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div class="text-center mb-12">
@@ -349,8 +337,6 @@ needs, boosting forecast accuracy by 30% and lowering infrastructure over-provis
             `;
 
             // --- UI Elements ---
-            const chatbotView = document.getElementById('chatbot-view');
-            const mainContentView = document.getElementById('main-content');
             const chatMessages = document.getElementById('chat-messages');
             const chatForm = document.getElementById('chat-form');
             const chatInput = document.getElementById('chat-input');
@@ -358,11 +344,11 @@ needs, boosting forecast accuracy by 30% and lowering infrastructure over-provis
             
             // --- Navigation Links ---
             const navLinks = {
-                chat: document.getElementById('nav-chat'),
-                about: document.getElementById('nav-about'),
-                experience: document.getElementById('nav-experience'),
-                projects: document.getElementById('nav-projects'),
-                contact: document.getElementById('nav-contact'),
+                chat: document.querySelector('a[href="#chat"]'),
+                about: document.querySelector('a[href="#about"]'),
+                experience: document.querySelector('a[href="#experience"]'),
+                projects: document.querySelector('a[href="#projects"]'),
+                contact: document.querySelector('a[href="#contact"]'),
             };
 
             // --- Chat State ---
@@ -370,43 +356,38 @@ needs, boosting forecast accuracy by 30% and lowering infrastructure over-provis
             let userName = '';
             let chatHistory = [];
 
-            // --- View Management ---
-            function setActiveNav(activeLink) {
+            // --- Navigation and Scroll Spy ---
+            function setActiveNav(activeId) {
                 Object.values(navLinks).forEach(link => {
                     link.classList.remove('text-indigo-400');
                     link.classList.add('text-gray-300');
                 });
-                activeLink.classList.remove('text-gray-300');
-                activeLink.classList.add('text-indigo-400');
-            }
-
-            function showChatbotView() {
-                mainContentView.classList.add('hidden');
-                chatbotView.classList.remove('hidden');
-                chatbotView.classList.add('flex');
-                setActiveNav(navLinks.chat);
-            }
-
-            function showMainContentView(sectionId) {
-                chatbotView.classList.add('hidden');
-                chatbotView.classList.remove('flex');
-                mainContentView.classList.remove('hidden');
-                
-                const section = document.getElementById(sectionId);
-                if (section) {
-                    // Using setTimeout to ensure the view is rendered before scrolling
-                    setTimeout(() => {
-                        section.scrollIntoView({ behavior: 'smooth' });
-                    }, 0);
+                 const activeLink = navLinks[activeId];
+                if (activeLink) {
+                    activeLink.classList.remove('text-gray-300');
+                    activeLink.classList.add('text-indigo-400');
                 }
-                setActiveNav(navLinks[sectionId]);
             }
-            
-            navLinks.chat.addEventListener('click', (e) => { e.preventDefault(); showChatbotView(); });
-            navLinks.about.addEventListener('click', (e) => { e.preventDefault(); showMainContentView('about'); });
-            navLinks.experience.addEventListener('click', (e) => { e.preventDefault(); showMainContentView('experience'); });
-            navLinks.projects.addEventListener('click', (e) => { e.preventDefault(); showMainContentView('projects'); });
-            navLinks.contact.addEventListener('click', (e) => { e.preventDefault(); showMainContentView('contact'); });
+
+            const sections = document.querySelectorAll('.section');
+            const observerOptions = {
+                root: null, // viewport
+                rootMargin: '0px',
+                threshold: 0.5 // 50% of the section is visible
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        setActiveNav(entry.target.id);
+                    }
+                });
+            }, observerOptions);
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
 
             // --- Chatbot Logic ---
             function initialGreeting() {
@@ -470,7 +451,7 @@ needs, boosting forecast accuracy by 30% and lowering infrastructure over-provis
                 chatMessages.scrollTop = chatMessages.scrollHeight;
                 
                 document.getElementById('explore-portfolio-btn').addEventListener('click', () => {
-                    showMainContentView('about');
+                    document.getElementById('about').scrollIntoView({ behavior: 'smooth' });
                 });
             }
 
@@ -501,7 +482,7 @@ needs, boosting forecast accuracy by 30% and lowering infrastructure over-provis
             }
 
             async function callGeminiAPI(prompt) {
-                const apiKey = ""; // Leave empty
+                const apiKey = "AIzaSyCNXkfdzdN1WB1cbY5kQWC7GsJj9jahkag"; // Leave empty
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
                 const payload = { contents: chatHistory, generationConfig: { temperature: 0.7, topP: 1, topK: 1, maxOutputTokens: 2048 }};
                 const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
